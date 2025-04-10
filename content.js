@@ -1,96 +1,82 @@
-window.addEventListener('load', function() {
-    // Fetch the page source
-    let pageSource = document.documentElement.outerHTML;
-  
-    // Search for the first occurrence of "fsd_company:" followed by a value until the first quote
-    let regex = /fsd_company:\s*"([^"]+)"/;
-    let match = pageSource.match(regex);
-  
-    // Fetch the company name from the <h1> tag with the specific id and class
-    let companyElement = document.querySelector('h1[id="ember35"][class*="org-top-card-summary__title"]');
-    let companyName = companyElement ? companyElement.getAttribute('title') : 'Unknown Company';
-  
-    if (match) {
-      let companyId = match[1]; // Extract the company ID
-      
-      // Show a custom alert with the Company Id
-      showCustomAlert(companyName, companyId);
-    }
+function waitForElement(selector, timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    const interval = 100;
+    let elapsed = 0;
+
+    const check = () => {
+      const el = document.querySelector(selector);
+      if (el) resolve(el);
+      else if ((elapsed += interval) >= timeout) reject('Element not found');
+      else setTimeout(check, interval);
+    };
+
+    check();
   });
-  
-  // Function to show a custom alert with the company details
-  function showCustomAlert(companyName, companyId) {
-    let alertContainer = document.createElement('div');
-    alertContainer.style.position = 'fixed';
-    alertContainer.style.top = '50%';
-    alertContainer.style.left = '50%';
-    alertContainer.style.transform = 'translate(-50%, -50%)';
-    alertContainer.style.padding = '20px';
-    alertContainer.style.backgroundColor = '#f9f9f9';
-    alertContainer.style.border = '1px solid #ccc';
-    alertContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
-    alertContainer.style.zIndex = '9999';
-    alertContainer.style.width = '300px';
-    
-    let content = `
-      <h3>Company Id</h3>
-      <p><strong>Company Name:</strong> ${companyName}</p>
-      <p><strong>Company Id:</strong> ${companyId}</p>
-      <button id="sendToSheets">Send to Sheets</button>
-    `;
-    
-    alertContainer.innerHTML = content;
-    document.body.appendChild(alertContainer);
-    
-    // Send to Sheets button functionality
-    document.getElementById('sendToSheets').addEventListener('click', function() {
-      // Send data to Google Sheets
-      sendDataToGoogleSheet(companyName, companyId);
-    });
-  }
-  
-  // Function to send data to Google Sheets API
-  function sendDataToGoogleSheet(companyName, companyId) {
-    // Replace with your Google Sheets API endpoint
-    const sheetApiUrl = 'https://docs.google.com/spreadsheets/d/1f-MDapjwCo5MdN90eimuxsslHHY3VV3m5kG3reWV-fs/values/Visited_Companies:append?valueInputOption=USER_ENTERED';
-    chrome.identity.getAuthToken({ interactive: true }, function(token) {
-      fetch(sheetApiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          values: [[companyName, companyId]]
-        })
-      })
-      .then(response => response.json())
-      .then(data => console.log('Sheet updated', data))
-      .catch(error => console.error('Sheet update error', error));
+}
+
+window.addEventListener('load', async function () {
+  try {
+    // 1. Wait for dynamically loaded company name
+    const titleElement = await waitForElement('h1.org-top-card-summary__title');
+    const companyName = titleElement.textContent.trim();
+
+    // 2. Extract the company ID from outerHTML
+    const html = document.documentElement.outerHTML;
+    // const regex = "/fsd_company:(\d+)&quot;/";
+    const regex = /fsd_company:\s*(\S+)/;
+    const match = html.match(regex);
+    const companyId = match ? match[1].split('"')[0] : 'Not Found';
+
+    // 3. Show simple alert with company info
+    alert(`Company Name: ${companyName}\nCompany ID: ${companyId}`);
+
+    // // 4. Send data to Google Sheet
+    // sendDataToGoogleSheet(companyName, companyId);
+
+    // Send data to Google Sheets
+    chrome.runtime.sendMessage({
+      action: "sendToGoogleSheet",
+      companyName: companyName,
+      companyId: companyId
     });
 
-    
-    // Data to be sent to the Google Sheets
-    const requestBody = {
-      values: [
-        [companyName, companyId]
-      ]
-    };
-    
-    fetch(sheetApiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Data successfully added to Google Sheets:', data);
-    })
-    .catch(error => {
-      console.error('Error adding data to Google Sheets:', error);
-    });
+  } catch (err) {
+    console.error('❌ Error:', err);
   }
-  
+});
+
+// // Function to send data to Google Sheet
+// function sendDataToGoogleSheet(companyName, companyId) {
+//   const spreadsheetId = '1f-MDapjwCo5MdN90eimuxsslHHY3VV3m5kG3reWV-fs';
+//   const sheetName = 'Visited_Companies';
+//   const sheetApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}:append?valueInputOption=USER_ENTERED`;
+
+//   chrome.identity.getAuthToken({ interactive: true }, function (token) {
+//     if (!token) {
+//       console.error('❌ OAuth token not available');
+//       return;
+//     }
+
+//     const requestBody = {
+//       values: [
+//         [companyName, companyId]
+//       ]
+//     };
+
+//     fetch(sheetApiUrl, {
+//       method: 'POST',
+//       headers: {
+//         'Authorization': `Bearer ${token}`,
+//         'Content-Type': 'application/json'
+//       },
+//       body: JSON.stringify(requestBody)
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//       console.log('✅ Data added to Google Sheets:', data);
+//     })
+//     .catch(error => {
+//       console.error('❌ Error updating Google Sheets:', error);
+//     });
+//   });
+// }
