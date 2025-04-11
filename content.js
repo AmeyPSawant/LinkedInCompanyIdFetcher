@@ -28,7 +28,7 @@ window.addEventListener('load', async function () {
     const companyId = match ? match[1].split('"')[0] : 'Not Found';
 
     // 3. Show simple alert with company info
-    alert(`Company Name: ${companyName}\nCompany ID: ${companyId}`);
+    // alert(`Company Name: ${companyName}\nCompany ID: ${companyId}`);
 
     // // 4. Send data to Google Sheet
     // sendDataToGoogleSheet(companyName, companyId);

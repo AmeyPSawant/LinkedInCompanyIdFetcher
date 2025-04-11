@@ -1,0 +1,7 @@
+// config.example.js
+const config = {
+    GOOGLE_CLIENT_ID: 'REPLACE_WITH_YOUR_CLIENT_ID',
+    SPREADSHEET_ID: 'REPLACE_WITH_YOUR_SPREADSHEET_ID',
+    GOOGLE_SHEET_NAME : 'REPLACE_WITH_YOUR_SPREADSHEET_NAME'
+  };
+  export default config;

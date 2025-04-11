@@ -1,10 +1,11 @@
 // Background script for Microsoft Edge Extension
 
+import config from './config.js';
 // Configuration
-const CLIENT_ID = '698204232750-i8he24hi1l9685un3ekihfl90ehkuh3j.apps.googleusercontent.com';
-const SPREADSHEET_ID = '1f-MDapjwCo5MdN90eimuxsslHHY3VV3m5kG3reWV-fs';
-const SHEET_NAME = 'Visited_Companies';
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const CLIENT_ID = config.GOOGLE_CLIENT_ID; // Replace with your actual client ID
+const SPREADSHEET_ID = config.GOOGLE_SPREADSHEET_ID; // Replace with your actual spreadsheet ID
+const SHEET_NAME = config.GOOGLE_SHEET_NAME // Default sheet name
+const SCOPES = chrome.runtime.getManifest().oauth2.scopes; // Replace with your actual scopes
 
 // Install listener
 chrome.runtime.onInstalled.addListener(() => {
