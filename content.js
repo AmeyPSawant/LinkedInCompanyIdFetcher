@@ -22,8 +22,8 @@ window.addEventListener('load', async function () {
 
     // 2. Extract the company ID from outerHTML
     const html = document.documentElement.outerHTML;
-    // const regex = "/fsd_company:(\d+)&quot;/";
-    const regex = /fsd_company:\s*(\S+)/;
+    const regex = /fsd_company:\s*(\d+)(?=,)/;
+    // const regex = /fsd_company:\s*(\S+)/; // This regex captures the company ID as "3282,3486766022802228233)" instead of "3282"
     const match = html.match(regex);
     const companyId = match ? match[1].split('"')[0] : 'Not Found';
 
